@@ -1,0 +1,685 @@
+#!/bin/bash
+
+partitioning () {
+
+  # fs=$(ls /bin/* | grep mkfs | awk '{if (NR!=1) {print}}' | sed 's/^.\{10\}//g' | awk '{print substr($0, 0, length($0)-0)}' | awk '$fs=$fs" Type"' |  awk '{if (NR!=1) {print}}' | grep -v cramfs | grep -v hfsplus | grep -v  bfs | grep -v msdos | grep -v minix)
+  fs=$(ls /bin/* | grep mkfs | awk '{if (NR!=1) {print}}' | sed 's/^.\{10\}//g' | awk '{print substr($0, 0, length($0)-0)}' | awk '$fs=$fs" Type"' |  awk '{if (NR!=1) {print}}' | grep -v 'erofs\|vfat\|minix\|msdos\|bfs\|cramfs\|hfsplus\|ext2\|ext3\|udf')
+  format=$(dialog --backtitle "${title}" --clear --title '' \
+          --ok-label "${oklabel}" --cancel-label "${msg_man_cancel}" --menu "${msg_man_chose}" 15 50 0 ${fs} 2>&1 > /dev/tty)      
+
+  case $format in
+      ext2) dialog --clear --no-collapse --cr-wrap --backtitle "${title}" --title "${msg_fmt_ext2}" --stdout --ok-label "${oklabel}" --prgbox "echo "" && mkfs.ext2 -F $part" 20 80;;
+      ext3) dialog --clear --no-collapse --cr-wrap --backtitle "${title}" --title "${msg_fmt_ext3}" --stdout --ok-label "${oklabel}" --prgbox "echo "" && mkfs.ext3 -F $part" 20 80;;
+      ext4) dialog --clear --no-collapse --cr-wrap --backtitle "${title}" --title "${msg_fmt_ext4}" --stdout --ok-label "${oklabel}" --prgbox "echo "" && mkfs.ext4 -F $part" 20 80;;
+      reiserfs) dialog --clear --no-collapse --cr-wrap --backtitle "${title}" --title "${msg_fmt_reiserfs}" --stdout --ok-label "${oklabel}" --prgbox "echo "" && mkfs.reiserfs -f -f $part" 20 80;;
+      vfat) dialog --clear --no-collapse --cr-wrap --backtitle "${title}" --title "${msg_fmt_fat32}" --stdout --ok-label "${oklabel}" --prgbox "echo "" && mkfs.vfat -F32 $part" 7 80;;
+      fat) dialog --clear --no-collapse --cr-wrap --backtitle "${title}" --title "${msg_fmt_fat32}" --stdout --ok-label "${oklabel}" --prgbox "echo "" && mkfs.fat -F32 $part" 7 80;;
+      exfat) dialog --clear --no-collapse --cr-wrap --backtitle "${title}" --title "${msg_fmt_extfat}" --stdout --ok-label "${oklabel}" --prgbox "echo "" && mkfs.exfat $part" 20 80;;
+      ntfs) dialog --clear --no-collapse --cr-wrap --backtitle "${title}" --title "${msg_fmt_ntfs}" --stdout --ok-label "${oklabel}" --prgbox "echo "" && mkfs.ntfs -Q $part" 20 80;;
+      f2fs) dialog --clear --no-collapse --cr-wrap --backtitle "${title}" --title "${msg_fmt_f2fs}" --stdout --ok-label "${oklabel}" --prgbox "echo "" && modprobe f2fs && mkfs.f2fs $part" 20 80;;
+      jfs) dialog --clear --no-collapse --cr-wrap --backtitle "${title}" --title "${msg_fmt_jfs}" --stdout --ok-label "${oklabel}" --prgbox "echo "" && mkfs.jfs -q $part" 20 80;;
+      xfs) dialog --clear --no-collapse --cr-wrap --backtitle "${title}" --title "${msg_fmt_xfs}" --stdout --ok-label "${oklabel}" --prgbox "echo "" && mkfs.xfs -f $part" 20 80;;
+      nilfs2) dialog --clear --no-collapse --cr-wrap --backtitle "${title}" --title "${msg_fmt_nilfs2}" --stdout --ok-label "${oklabel}" --prgbox "echo "" && mkfs.nilfs2 -f $part" 20 80;;
+      udf) dialog --clear --no-collapse --cr-wrap --backtitle "${title}" --title "${msg_fmt_udf}" --stdout --ok-label "${oklabel}" --prgbox "echo "" && mkfs.udf -F $part" 20 80;;
+      btrfs) dialog --clear --no-collapse --cr-wrap --backtitle "${title}" --title "${msg_fmt_btrfs}" --stdout --ok-label "${oklabel}" --prgbox "echo "" && mkfs.btrfs -f $part" 20 80;;
+  esac
+}
+
+
+manualdisk () {
+
+part="$(lsblk -lno NAME,SIZE,TYPE | grep 'disk' | awk '{print "/dev/" $1 " " $2}' | sort -u | sed '/f/d' | sed '/sr/d' )" 
+disk=$(dialog --backtitle "${title}" --clear  --ok-label "${msg_part_select}" --no-cancel --menu "${msg_part_select_arch}" 12 45 0 ${part} 2>&1 >/dev/tty)
+
+partitioner=$(dialog --backtitle "${title}" --clear --title "${msg_fmt_disk}" --ok-label "${oklabel}" --no-cancel --menu "${msg_fmt_create}" 9 0 0\
+    "cfdisk" "${msg_fmt_type1}" \
+    "fdisk " "${msg_fmt_type2}" \
+    "parted" "${msg_fmt_type2}" 2>&1 > /dev/tty)
+
+clear
+
+$partitioner $disk
+
+fdisk -l "$disk" > /tmp/partitions
+
+#partitions="$(cat /tmp/partitions | grep /dev/ | awk '{if (NR!=1) {print}}' | sed 's/*//g' | awk -F ' ' '{print $1,$5}')"
+partitions=$(fdisk -l ${disk} | grep /dev/ | awk '{if (NR!=1) {print}}' | sed 's/*//g' | awk -F ' ' '{print $1,$5}' | grep /dev/ | awk '{if (NR=1) {print}}' | sed 's/*//g')
+p="$(echo "$partitions")"
+
+part=$(dialog --backtitle "${title}" --title "${msg_fmt_mount}" --ok-label "${msg_oklabel}" --no-cancel --clear \
+  --menu "${msg_fmt_mount_root}" 10 55 0 ${p} 2>&1 > /dev/tty)
+
+#dialog --no-collapse --cr-wrap --backtitle "${title}" --title "-| Verificando estado de partición |-" --stdout --ok-label "${oklabel}" --prgbox "e2fsck -f -y -v -C 0 $part" 20 80
+
+rootfs=$part
+
+p=$(echo "$p" | grep -v $part)
+
+partitioning
+mount "$rootfs" /mnt
+
+
+bootarch=$( ls /sys/firmware/efi/ | grep -ic efivars )
+
+if [[ $bootarch == 1 ]]; then
+
+
+tableboot="UEFI"
+
+cmd=(dialog --backtitle "${title}" --separate-output --ok-label "${msg_fmt_mount}" --cancel-label "${msg_fmt_end}" \--checklist "${msg_fmt_opt}" 10 80 0)
+options=("/efi " "${msg_fmt_opt0}" off
+  "/home" "${msg_fmt_opt1}" off
+  "/tmp " "${msg_fmt_opt2}" off
+  "/usr " "${msg_fmt_opt3}" off
+  "/var " "${msg_fmt_opt4}" off
+  "/srv " "${msg_fmt_opt5}" off
+  "/opt " "${msg_fmt_opt6}" off
+  "swap " "${msg_fmt_opt7}" off
+  )
+choices=$("${cmd[@]}" "${options[@]}" 2>&1 >/dev/tty)
+clear
+for choice in $choices
+do
+  case $choice in
+      
+    "/efi")
+
+#     dialog --backtitle "$${title}" --title "${msg_fmt_part}" --stdout --ok-label '${oklabel}' --msgbox "$(echo "" && fdisk -l $disk | grep gpt && echo "" && fdisk -l $disk | grep /dev/ )" 11 150
+      part=$(dialog --backtitle "${title}" --ok-label "${oklabel}" --no-cancel --clear --title "${msg_fmt_part}" \
+        --menu "${msg_fmt_part_efi}" 0 55 0 ${p} 2>&1 > /dev/tty )
+      efifs="$part"
+      #dialog --backtitle "$${title}" --title "| Verificando estado de Disco |" --stdout --ok-label "${oklabel}" --prgbox "e2fsck -f -y -v -C 0 $part" 20 80
+      partitioning
+      efidir="efi"
+      mkdir -p /mnt/efi
+      mount "$efifs" /mnt/efi
+      p=$(echo "$p" | grep -v "$part")
+      ;;
+        
+    "/home")
+
+#     dialog --backtitle "$${title}" --title "${msg_fmt_part}" --stdout --ok-label '${oklabel}' --msgbox "$(echo "" && fdisk -l $disk | grep gpt && echo "" && fdisk -l $disk | grep /dev/ )" 11 150
+      part=$(dialog --backtitle "${title}" --ok-label "${oklabel}" --no-cancel --clear --title "${msg_fmt_part}" \
+        --menu "${msg_fmt_part_home}" 0 55 0 ${p} 2>&1 > /dev/tty )
+      homefs="$part"
+      #dialog --backtitle "$${title}" --title "| Verificando estado de Disco |" --stdout --ok-label "${oklabel}" --prgbox "e2fsck -f -y -v -C 0 $part" 20 80
+      partitioning
+      homedir="home"
+      mkdir -p /mnt/home
+      mount "$homefs" /mnt/home
+      p=$(echo "$p" | grep -v "$part")
+      ;;
+
+    "/tmp")
+
+#     dialog --backtitle "$${title}" --title "${msg_fmt_part}" --stdout --ok-label '${oklabel}' --msgbox "$(echo "" && fdisk -l $disk | grep gpt && echo "" && fdisk -l $disk | grep /dev/ )" 11 150
+      part=$(dialog --backtitle "${title}" --ok-label "${oklabel}" --no-cancel --clear --title "${msg_fmt_part}" \
+        --menu "${msg_fmt_part_tmp}" 0 55 0 ${p} 2>&1 > /dev/tty )
+      tmpfs="$part"
+      #dialog --backtitle "$${title}" --title "| Verificando estado de Disco |" --stdout --ok-label "${oklabel}" --prgbox "e2fsck -f -y -v -C 0 $part" 20 80
+      partitioning
+      tmpdir="tmp"
+      mkdir -p /mnt/tmp
+      mount "$tmpfs" /mnt/tmp
+      p=$(echo "$p" | grep -v "$part")
+      ;;
+    
+    "/usr")
+
+#     dialog --backtitle "$${title}" --title "${msg_fmt_part}" --stdout --ok-label '${oklabel}' --msgbox "$(echo "" && fdisk -l $disk | grep gpt && echo "" && fdisk -l $disk | grep /dev/ )" 11 150
+      part=$(dialog --backtitle "${title}" --ok-label ${oklabal} --no-cancel --clear --title "${msg_fmt_part}" \
+        --menu "${msg_fmt_part_usr}" 0 55 0 ${p} 2>&1 > /dev/tty )
+      usrfs="$part"
+      #dialog --backtitle "$${title}" --title "| Verificando estado de Disco |" --stdout --ok-label "${oklabel}" --prgbox "e2fsck -f -y -v -C 0 $part" 20 80
+      partitioning
+      usrdir="usr"
+      mkdir -p /mnt/usr
+      mount "$usrfs" /mnt/usr
+      p=$(echo "$p" | grep -v "$part")
+      ;;
+    
+    "/var")
+
+#     dialog --backtitle "$${title}" --title "${msg_fmt_part}" --stdout --ok-label '${oklabel}' --msgbox "$(echo "" && fdisk -l $disk | grep gpt && echo "" && fdisk -l $disk | grep /dev/ )" 11 150
+      part=$(dialog --backtitle "${title}" --ok-label ${oklabel} --no-cancel --clear --title "${msg_fmt_part}" \
+        --menu "${msg_fmt_part_var}" 0 55 0 ${p} 2>&1 > /dev/tty )
+      varfs="$part"
+      #dialog --backtitle "$${title}" --title "| Verificando estado de Disco |" --stdout --ok-label "${oklabel}" --prgbox "e2fsck -f -y -v -C 0 $part" 20 80
+      partitioning
+      vardir="var"
+      mkdir -p /mnt/var
+      mount "$varfs" /mnt/var
+      p=$(echo "$p" | grep -v "$part")
+      ;;
+    
+    "/srv")
+
+#     dialog --backtitle "$${title}" --title "${msg_fmt_part}" --stdout --ok-label '${oklabel}' --msgbox "$(echo "" && fdisk -l $disk | grep gpt && echo "" && fdisk -l $disk | grep /dev/ )" 11 150
+      part=$(dialog --backtitle "$${title}" --ok-label ${oklabel} --no-cancel --clear --title "${msg_fmt_part}" \
+        --menu "${msg_fmt_part_srv}" 0 55 0 ${p} 2>&1 > /dev/tty )
+      srvfs="$part"
+      #dialog --backtitle "$${title}" --title "| Verificando estado de Disco |" --stdout --ok-label "${oklabel}" --prgbox "e2fsck -f -y -v -C 0 $part" 20 80
+      partitioning
+      srvdir="srv"
+      mkdir -p /mnt/srv
+      mount "$srvfs" /mnt/srv
+      p=$(echo "$p" | grep -v "$part")
+      ;;
+    
+    "/opt")
+
+#     dialog --backtitle "$${title}" --title "${msg_fmt_part}" --stdout --ok-label '${oklabel}' --msgbox "$(echo "" && fdisk -l $disk | grep gpt && echo "" && fdisk -l $disk | grep /dev/ )" 11 150
+      part=$(dialog --backtitle "$${title}" --ok-label ${oklabel} --no-cancel --clear --title "${msg_fmt_part}" \
+        --menu "${msg_fmt_part_opt}" 0 55 0 ${p} 2>&1 > /dev/tty )
+      optfs="$part"
+      #dialog --backtitle "$${title}" --title "| Verificando estado de Disco |" --stdout --ok-label "${oklabel}" --prgbox "e2fsck -f -y -v -C 0 $part" 20 80
+      partitioning
+      optdir="opt"
+      mkdir -p /mnt/opt
+      mount "$optfs" /mnt/opt
+      p=$(echo "$p" | grep -v "$part")
+      ;;
+    
+    "swap")
+#     dialog --backtitle "$${title}" --title "${msg_fmt_part}" --stdout --ok-label '${oklabel}' --msgbox "$(echo "" && fdisk -l $disk | grep gpt && echo "" && fdisk -l $disk | grep /dev/ )" 11 150
+      part=$(dialog --backtitle "$${title}" --ok-label ${oklabel} --no-cancel --clear --title "${msg_fmt_part}" \
+        --menu "${msg_fmt_part_swap}" 0 55 0 ${p} 2>&1 > /dev/tty)
+      dialog --title "${msg_fmt_swap}" --stdout --ok-label "${oklabel}" --prgbox "echo "" && mkswap $part && swapon $part" 10 100
+      swap="$part"
+      p=$(echo "$p" | grep -v "$part")
+  esac
+done
+#PARTICIONADO MANUAL
+
+else
+
+
+tableboot="BIOS LEGACY"
+
+cmd=(dialog --backtitle "${title}" --separate-output --ok-label "${msg_fmt_mount}" --cancel-label "${msg_fmt_end}" \--checklist "${msg_fmt_opt}" 10 80 0)
+options=("/boot" "${msg_fmt_boot}" off   
+  "/home" "${msg_fmt_opt1}" off
+  "/tmp " "${msg_fmt_opt2}" off
+  "/usr " "${msg_fmt_opt3}" off
+  "/var " "${msg_fmt_opt4}" off
+  "/srv " "${msg_fmt_opt5}" off
+  "/opt " "${msg_fmt_opt6}" off
+  "swap " "${msg_fmt_opt7}" off
+  )
+choices=$("${cmd[@]}" "${options[@]}" 2>&1 >/dev/tty)
+clear
+for choice in $choices
+do
+  case $choice in
+    "/boot")
+#     dialog --backtitle "${title}" --title "${msg_fmt_part}" --stdout --ok-label '${oklabel}' --msgbox "$(echo "" && fdisk -l $disk | grep gpt && echo "" && fdisk -l $disk | grep /dev/ )" 11 150
+      part=$(dialog --backtitle "${title}" --ok-label "${oklabel}" --no-cancel --clear --title "${msg_fmt_part}" \
+        --menu "${msg_fmt_part_boot}" 0 55 0 ${p} 2>&1 > /dev/tty )
+      bootfs="$part"
+      #dialog --backtitle "$${title}" --title "| Verificando estado de Disco |" --stdout --ok-label "${oklabel}" --prgbox "e2fsck -f -y -v -C 0 $part" 20 80
+      partitioning
+      bootdir="boot"
+      mkdir -p /mnt/boot
+      mount "$bootfs" /mnt/boot
+      p=$(echo "$p" | grep -v "$part")
+      ;;
+    
+    "/home")
+#     dialog --backtitle "$${title}" --title "${msg_fmt_part}" --stdout --ok-label '${oklabel}' --msgbox "$(echo "" && fdisk -l $disk | grep gpt && echo "" && fdisk -l $disk | grep /dev/ )" 11 150
+      part=$(dialog --backtitle "${title}" --ok-label "${oklabel}" --no-cancel --clear --title "${msg_fmt_part}" \
+        --menu "${msg_fmt_part_home}" 0 55 0 ${p} 2>&1 > /dev/tty )
+      homefs="$part"
+      #dialog --backtitle "$${title}" --title "| Verificando estado de Disco |" --stdout --ok-label "${oklabel}" --prgbox "e2fsck -f -y -v -C 0 $part" 20 80
+      partitioning
+      homedir="home"
+      mkdir -p /mnt/home
+      mount "$homefs" /mnt/home
+      p=$(echo "$p" | grep -v "$part")
+      ;;
+
+    "/tmp")
+#     dialog --backtitle "$${title}" --title "${msg_fmt_part}" --stdout --ok-label '${oklabel}' --msgbox "$(echo "" && fdisk -l $disk | grep gpt && echo "" && fdisk -l $disk | grep /dev/ )" 11 150
+      part=$(dialog --backtitle "${title}" --ok-label "${oklabel}" --no-cancel --clear --title "${msg_fmt_part}" \
+        --menu "${msg_fmt_part_tmp}" 0 55 0 ${p} 2>&1 > /dev/tty )
+      tmpfs="$part"
+      #dialog --backtitle "$${title}" --title "| Verificando estado de Disco |" --stdout --ok-label "${oklabel}" --prgbox "e2fsck -f -y -v -C 0 $part" 20 80
+      partitioning
+      tmpdir="tmp"
+      mkdir -p /mnt/tmp
+      mount "$tmpfs" /mnt/tmp
+      p=$(echo "$p" | grep -v "$part")
+      ;;
+
+    "/usr")
+#     dialog --backtitle "$${title}" --title "${msg_fmt_part}" --stdout --ok-label '${oklabel}' --msgbox "$(echo "" && fdisk -l $disk | grep gpt && echo "" && fdisk -l $disk | grep /dev/ )" 11 150
+      part=$(dialog --backtitle "${title}" --ok-label "${oklabel}" --no-cancel --clear --title "${msg_fmt_part}" \
+        --menu "${msg_fmt_part_usr}" 0 55 0 ${p} 2>&1 > /dev/tty )
+      usrfs="$part"
+      #dialog --backtitle "$${title}" --title "| Verificando estado de Disco |" --stdout --ok-label "${oklabel}" --prgbox "e2fsck -f -y -v -C 0 $part" 20 80
+      partitioning
+      usrdir="usr"
+      mkdir -p /mnt/usr
+      mount "$usrfs" /mnt/usr
+      p=$(echo "$p" | grep -v "$part")
+      ;;
+
+    "/var")
+#     dialog --backtitle "$${title}" --title "${msg_fmt_part}" --stdout --ok-label '${oklabel}' --msgbox "$(echo "" && fdisk -l $disk | grep gpt && echo "" && fdisk -l $disk | grep /dev/ )" 11 150
+      part=$(dialog --backtitle "${title}" --ok-label "${oklabel}" --no-cancel --clear --title "${msg_fmt_part}" \
+        --menu "${msg_fmt_part_var}" 0 55 0 ${p} 2>&1 > /dev/tty )
+      varfs="$part"
+      #dialog --backtitle "$${title}" --title "| Verificando estado de Disco |" --stdout --ok-label "${oklabel}" --prgbox "e2fsck -f -y -v -C 0 $part" 20 80
+      partitioning
+      vardir="var"
+      mkdir -p /mnt/var
+      mount "$varfs" /mnt/var
+      p=$(echo "$p" | grep -v "$part")
+      ;;
+
+    "/srv")
+#     dialog --backtitle "$${title}" --title "${msg_fmt_part}" --stdout --ok-label '${oklabel}' --msgbox "$(echo "" && fdisk -l $disk | grep gpt && echo "" && fdisk -l $disk | grep /dev/ )" 11 150
+      part=$(dialog --backtitle "${title}" --ok-label "${oklabel}" --no-cancel --clear --title "${msg_fmt_part}" \
+        --menu "${msg_fmt_part_srv}" 0 55 0 ${p} 2>&1 > /dev/tty )
+      srvfs="$part"
+#     dialog --backtitle "$${title}" --title "| Verificando estado de Disco |" --stdout --ok-label "${oklabel}" --prgbox "e2fsck -f -y -v -C 0 $part" 20 80
+      partitioning
+      srvdir="srv"
+      mkdir -p /mnt/srv
+      mount "$srvfs" /mnt/srv
+      p=$(echo "$p" | grep -v "$part")
+      ;;
+    
+    "/opt")
+#     dialog --backtitle "$${title}" --title "${msg_fmt_part}" --stdout --ok-label '${oklabel}' --msgbox "$(echo "" && fdisk -l $disk | grep gpt && echo "" && fdisk -l $disk | grep /dev/ )" 11 150
+      part=$(dialog --backtitle "${title}" --ok-label "${oklabel}" --no-cancel --clear --title "${msg_fmt_part}" \
+        --menu "${msg_fmt_part_opt}" 0 55 0 ${p} 2>&1 > /dev/tty )
+      optfs="$part"
+      #dialog --backtitle "$${title}" --title "| Verificando estado de Disco |" --stdout --ok-label "${oklabel}" --prgbox "e2fsck -f -y -v -C 0 $part" 20 80
+      partitioning
+      optdir="opt"
+      mkdir -p /mnt/opt
+      mount "$optfs" /mnt/opt
+      p=$(echo "$p" | grep -v "$part")
+      ;;
+
+    "swap")
+#     dialog --backtitle "$${title}" --title "${msg_fmt_part}" --stdout --ok-label '${oklabel}' --msgbox "$(echo "" && fdisk -l $disk | grep gpt && echo "" && fdisk -l $disk | grep /dev/ )" 11 150
+      part=$(dialog --backtitle "${title}" --ok-label "${oklabel}" --no-cancel --clear --title "${msg_fmt_part}" \
+        --menu "${msg_fmt_part_swap}" 0 55 0 ${p} 2>&1 > /dev/tty)
+      dialog --title "${msg_fmt_swap}" --stdout --ok-label "${oklabel}" --prgbox "echo "" && mkswap $part && swapon $part" 10 100
+      swap="$part"
+      p=$(echo "$p" | grep -v "$part")
+  esac
+done
+#PARTICIONADO MANUAL
+
+
+
+fi
+
+
+}
+
+
+manualhomedisk () {
+
+part="$(lsblk -lno NAME,SIZE,TYPE | grep 'disk' | awk '{print "/dev/" $1 " " $2}' | sort -u | sed '/f/d' | sed '/sr/d' )" 
+disk=$(dialog --backtitle "${title}" --clear  --ok-label "${msg_part_select}" --no-cancel --menu "${msg_part_select_arch}" 12 45 0 ${part} 2>&1 >/dev/tty)
+
+partitioner=$(dialog --backtitle "${title}" --clear --title "${msg_fmt_disk}" --ok-label "${oklabel}" --no-cancel --menu "${msg_fmt_create}" 9 0 0\
+    "cfdisk" "${msg_fmt_type1}" \
+    "fdisk" "${msg_fmt_type2}" \
+    "parted" "${msg_fmt_type2}" 2>&1 > /dev/tty)
+
+clear
+
+$partitioner $disk
+
+fdisk -l "$disk" > /tmp/partitions
+
+#partitions="$(cat /tmp/partitions | grep /dev/ | awk '{if (NR!=1) {print}}' | sed 's/*//g' | awk -F ' ' '{print $1,$5}')"
+partitions=$(fdisk -l ${disk} | grep /dev/ | awk '{if (NR!=1) {print}}' | sed 's/*//g' | awk -F ' ' '{print $1,$5}' | grep /dev/ | awk '{if (NR=1) {print}}' | sed 's/*//g')
+p="$(echo "$partitions")"
+
+part=$(dialog --backtitle "${title}" --title "${msg_fmt_mount}" --ok-label "${oklabel}" --no-cancel --clear \
+  --menu "${msg_fmt_mount_root}" 10 55 0 ${p} 2>&1 > /dev/tty)
+
+#dialog --no-collapse --cr-wrap --backtitle "${title}" --title "-| Verificando estado de partición |-" --stdout --ok-label "${oklabel}" --prgbox "e2fsck -f -y -v -C 0 $part" 20 80
+
+rootfs=$part
+
+p=$(echo "$p" | grep -v $part)
+
+partitioning
+mount "$rootfs" /mnt
+
+
+bootarch=$( ls /sys/firmware/efi/ | grep -ic efivars )
+
+if [[ $bootarch == 1 ]]; then
+
+
+tableboot="UEFI"
+
+cmd=(dialog --backtitle "${title}" --separate-output --ok-label "${msg_fmt_mount}" --cancel-label "${msg_fmt_end}" \--checklist "${msg_fmt_opt}" 10 80 0)
+options=("/efi " "${msg_fmt_part_efi}" off
+  "/tmp " "${msg_fmt_opt2}" off
+  "/usr " "${msg_fmt_opt3}" off
+  "/var " "${msg_fmt_opt4}" off
+  "/srv " "${msg_fmt_opt5}" off
+  "/opt " "${msg_fmt_opt6}" off
+  "swap " "${msg_fmt_opt7}" off
+  )
+choices=$("${cmd[@]}" "${options[@]}" 2>&1 >/dev/tty)
+clear
+for choice in $choices
+do
+  case $choice in
+      
+    "/efi")
+#     dialog --backtitle "${title}" --title "${msg_fmt_part}" --stdout --ok-label '${oklabel}' --msgbox "$(echo "" && fdisk -l $disk | grep gpt && echo "" && fdisk -l $disk | grep /dev/ )" 11 150
+      part=$(dialog --backtitle "${title}" --ok-label "${oklabel}" --no-cancel --clear --title "${msg_fmt_part}" \
+        --menu "${msg_fmt_part_efi}" 0 55 0 ${p} 2>&1 > /dev/tty )
+      efifs="$part"
+      #dialog --backtitle "$${title}" --title "| Verificando estado de Disco |" --stdout --ok-label "${oklabel}" --prgbox "e2fsck -f -y -v -C 0 $part" 20 80
+      partitioning
+      efidir="efi"
+      mkdir -p /mnt/efi
+      mount "$efifs" /mnt/efi
+      p=$(echo "$p" | grep -v "$part")
+      ;;
+        
+
+    "/tmp")
+#     dialog --backtitle "${title}" --title "${msg_fmt_part}" --stdout --ok-label "${oklabel}"" --msgbox "$(echo "" && fdisk -l $disk | grep gpt && echo "" && fdisk -l $disk | grep /dev/ )" 11 150
+      part=$(dialog --backtitle "${title}" --ok-label "${oklabel}" --no-cancel --clear --title "${msg_fmt_part}" \
+        --menu "${msg_fmt_part_tmp}" 0 55 0 ${p} 2>&1 > /dev/tty )
+      tmpfs="$part"
+      #dialog --backtitle "$${title}" --title "| Verificando estado de Disco |" --stdout --ok-label "${oklabel}" --prgbox "e2fsck -f -y -v -C 0 $part" 20 80
+      partitioning
+      tmpdir="tmp"
+      mkdir -p /mnt/tmp
+      mount "$tmpfs" /mnt/tmp
+      p=$(echo "$p" | grep -v "$part")
+      ;;
+
+    "/usr")
+#     dialog --backtitle "$${title}" --title "${msg_fmt_part}" --stdout --ok-label '${oklabel}' --msgbox "$(echo "" && fdisk -l $disk | grep gpt && echo "" && fdisk -l $disk | grep /dev/ )" 11 150
+      part=$(dialog --backtitle "${title}" --ok-label "${oklabel}" --no-cancel --clear --title "${msg_fmt_part}" \
+        --menu "${msg_fmt_part_usr}" 0 55 0 ${p} 2>&1 > /dev/tty )
+      usrfs="$part"
+      #dialog --backtitle "$${title}" --title "| Verificando estado de Disco |" --stdout --ok-label "${oklabel}" --prgbox "e2fsck -f -y -v -C 0 $part" 20 80
+      partitioning
+      usrdir="usr"
+      mkdir -p /mnt/usr
+      mount "$usrfs" /mnt/usr
+      p=$(echo "$p" | grep -v "$part")
+      ;;
+
+    "/var")
+#     dialog --backtitle "$${title}" --title "${msg_fmt_part}" --stdout --ok-label '${oklabel}' --msgbox "$(echo "" && fdisk -l $disk | grep gpt && echo "" && fdisk -l $disk | grep /dev/ )" 11 150
+      part=$(dialog --backtitle "${title}" --ok-label "${oklabel}" --no-cancel --clear --title "${msg_fmt_part}" \
+        --menu "${msg_fmt_part_var}" 0 55 0 ${p} 2>&1 > /dev/tty )
+      varfs="$part"
+      #dialog --backtitle "$${title}" --title "| Verificando estado de Disco |" --stdout --ok-label "${oklabel}" --prgbox "e2fsck -f -y -v -C 0 $part" 20 80
+      partitioning
+      vardir="var"
+      mkdir -p /mnt/var
+      mount "$varfs" /mnt/var
+      p=$(echo "$p" | grep -v "$part")
+      ;;
+
+    "/srv")
+#     dialog --backtitle "$${title}" --title "${msg_fmt_part}" --stdout --ok-label '${oklabel}' --msgbox "$(echo "" && fdisk -l $disk | grep gpt && echo "" && fdisk -l $disk | grep /dev/ )" 11 150
+      part=$(dialog --backtitle "${title}" --ok-label "${oklabel}" --no-cancel --clear --title "${msg_fmt_part}" \
+        --menu "| ${msg_fmt_part_srv}" 0 55 0 ${p} 2>&1 > /dev/tty )
+      srvfs="$part"
+      #dialog --backtitle "$${title}" --title "| Verificando estado de Disco |" --stdout --ok-label "${oklabel}" --prgbox "e2fsck -f -y -v -C 0 $part" 20 80
+      partitioning
+      srvdir="srv"
+      mkdir -p /mnt/srv
+      mount "$srvfs" /mnt/srv
+      p=$(echo "$p" | grep -v "$part")
+      ;;
+    "/opt")
+
+#     dialog --backtitle "$${title}" --title "${msg_fmt_part}" --stdout --ok-label '${oklabel}' --msgbox "$(echo "" && fdisk -l $disk | grep gpt && echo "" && fdisk -l $disk | grep /dev/ )" 11 150
+      part=$(dialog --backtitle "${title}" --ok-label "${oklabel}" --no-cancel --clear --title "${msg_fmt_part}" \
+        --menu "${msg_fmt_part_opt}" 0 55 0 ${p} 2>&1 > /dev/tty )
+      optfs="$part"
+      #dialog --backtitle "$${title}" --title "| Verificando estado de Disco |" --stdout --ok-label "${oklabel}" --prgbox "e2fsck -f -y -v -C 0 $part" 20 80
+      partitioning
+      optdir="opt"
+      mkdir -p /mnt/opt
+      mount "$optfs" /mnt/opt
+      p=$(echo "$p" | grep -v "$part")
+      ;;
+    "swap")
+#     dialog --backtitle "$${title}" --title "${msg_fmt_part}" --stdout --ok-label '${oklabel}' --msgbox "$(echo "" && fdisk -l $disk | grep gpt && echo "" && fdisk -l $disk | grep /dev/ )" 11 150
+      part=$(dialog --backtitle "${title}" --ok-label "${oklabel}" --no-cancel --clear --title "${msg_fmt_part}" \
+        --menu "${msg_fmt_part_swap}" 0 55 0 ${p} 2>&1 > /dev/tty)
+      dialog --title "${msg_fmt_swap}" --stdout --ok-label "${oklabel}" --prgbox "echo "" && mkswap $part && swapon $part" 10 100
+      swap="$part"
+      p=$(echo "$p" | grep -v "$part")
+  esac
+done
+#PARTICIONADO MANUAL
+
+else
+
+
+tableboot="BIOS LEGACY"
+
+cmd=(dialog --backtitle "${title}" --separate-output --ok-label "${msg_fmt_mount}" --cancel-label "${msg_fmt_end}" \ --checklist "${msg_fmt_opt}" 10 80 0)
+options=("/boot" "${msg_fmt_boot}" off 
+  "/tmp " "${msg_fmt_opt2}" off
+  "/usr " "${msg_fmt_opt3}" off
+  "/var " "${msg_fmt_opt4}" off
+  "/srv " "${msg_fmt_opt5}" off
+  "/opt " "${msg_fmt_opt6}" off
+  "swap " "${msg_fmt_opt7}" off
+  )
+choices=$("${cmd[@]}" "${options[@]}" 2>&1 >/dev/tty)
+clear
+for choice in $choices
+do
+  case $choice in
+    "/boot")
+
+#     dialog --backtitle "$${title}" --title "${msg_fmt_part}" --stdout --ok-label '${oklabel}' --msgbox "$(echo "" && fdisk -l $disk | grep gpt && echo "" && fdisk -l $disk | grep /dev/ )" 11 150
+      part=$(dialog --backtitle "${title}" --ok-label "${oklabel}" --no-cancel --clear --title "${msg_fmt_part}" \
+        --menu "${msg_fmt_part_boot}" 0 55 0 ${p} 2>&1 > /dev/tty )
+      bootfs="$part"
+      #dialog --backtitle "${title}" --title "| Verificando estado de Disco |" --stdout --ok-label "${oklabel}" --prgbox "e2fsck -f -y -v -C 0 $part" 20 80
+      partitioning
+      bootdir="boot"
+      mkdir -p /mnt/boot
+      mount "$bootfs" /mnt/boot
+      p=$(echo "$p" | grep -v "$part")
+      ;;
+      
+        
+    "/tmp")
+
+#     dialog --backtitle "$${title}" --title "${msg_fmt_part}" --stdout --ok-label '${oklabel}' --msgbox "$(echo "" && fdisk -l $disk | grep gpt && echo "" && fdisk -l $disk | grep /dev/ )" 11 150
+      part=$(dialog --backtitle "${title}" --ok-label "${oklabel}" --no-cancel --clear --title "${msg_fmt_part}" \
+        --menu "${msg_fmt_part_tmp}" 0 55 0 ${p} 2>&1 > /dev/tty )
+      tmpfs="$part"
+      #dialog --backtitle "$${title}" --title "| Verificando estado de Disco |" --stdout --ok-label "${oklabel}" --prgbox "e2fsck -f -y -v -C 0 $part" 20 80
+      partitioning
+      tmpdir="tmp"
+      mkdir -p /mnt/tmp
+      mount "$tmpfs" /mnt/tmp
+      p=$(echo "$p" | grep -v "$part")
+      ;;
+    "/usr")
+
+#     dialog --backtitle "$${title}" --title "${msg_fmt_part}" --stdout --ok-label '${oklabel}' --msgbox "$(echo "" && fdisk -l $disk | grep gpt && echo "" && fdisk -l $disk | grep /dev/ )" 11 150
+      part=$(dialog --backtitle "${title}" --ok-label "${oklabel}" --no-cancel --clear --title "${msg_fmt_part}" \
+        --menu "${msg_fmt_part_usr}" 0 55 0 ${p} 2>&1 > /dev/tty )
+      usrfs="$part"
+      #dialog --backtitle "$${title}" --title "| Verificando estado de Disco |" --stdout --ok-label "${oklabel}" --prgbox "e2fsck -f -y -v -C 0 $part" 20 80
+      partitioning
+      usrdir="usr"
+      mkdir -p /mnt/usr
+      mount "$usrfs" /mnt/usr
+      p=$(echo "$p" | grep -v "$part")
+      ;;
+    "/var")
+
+#     dialog --backtitle "$${title}" --title "${msg_fmt_part}" --stdout --ok-label '${oklabel}' --msgbox "$(echo "" && fdisk -l $disk | grep gpt && echo "" && fdisk -l $disk | grep /dev/ )" 11 150
+      part=$(dialog --backtitle "${title}" --ok-label "${oklabel}" --no-cancel --clear --title "${msg_fmt_part}" \
+        --menu "${msg_fmt_part_var}" 0 55 0 ${p} 2>&1 > /dev/tty )
+      varfs="$part"
+      #dialog --backtitle "$${title}" --title "| Verificando estado de Disco |" --stdout --ok-label "${oklabel}" --prgbox "e2fsck -f -y -v -C 0 $part" 20 80
+      partitioning
+      vardir="var"
+      mkdir -p /mnt/var
+      mount "$varfs" /mnt/var
+      p=$(echo "$p" | grep -v "$part")
+      ;;
+    "/srv")
+
+#     dialog --backtitle "$${title}" --title "${msg_fmt_part}" --stdout --ok-label '${oklabel}' --msgbox "$(echo "" && fdisk -l $disk | grep gpt && echo "" && fdisk -l $disk | grep /dev/ )" 11 150
+      part=$(dialog --backtitle "${title}" --ok-label "${oklabel}" --no-cancel --clear --title "${msg_fmt_part}" \
+        --menu "${msg_fmt_part_srv}" 0 55 0 ${p} 2>&1 > /dev/tty )
+      srvfs="$part"
+      #dialog --backtitle "$${title}" --title "| Verificando estado de Disco |" --stdout --ok-label "${oklabel}" --prgbox "e2fsck -f -y -v -C 0 $part" 20 80
+      partitioning
+      srvdir="srv"
+      mkdir -p /mnt/srv
+      mount "$srvfs" /mnt/srv
+      p=$(echo "$p" | grep -v "$part")
+      ;;
+    "/opt")
+
+#     dialog --backtitle "${title}" --title "${msg_fmt_part}" --stdout --ok-label '${oklabel}' --msgbox "$(echo "" && fdisk -l $disk | grep gpt && echo "" && fdisk -l $disk | grep /dev/ )" 11 150
+      part=$(dialog --backtitle "${title}" --ok-label "${oklabel}" --no-cancel --clear --title "${msg_fmt_part}" \
+        --menu "${msg_fmt_part_opt}" 0 55 0 ${p} 2>&1 > /dev/tty )
+      optfs="$part"
+      #dialog --backtitle "$${title}" --title "| Verificando estado de Disco |" --stdout --ok-label "${oklabel}" --prgbox "e2fsck -f -y -v -C 0 $part" 20 80
+      partitioning
+      optdir="opt"
+      mkdir -p /mnt/opt
+      mount "$optfs" /mnt/opt
+      p=$(echo "$p" | grep -v "$part")
+      ;;
+    "swap")
+#     dialog --backtitle "${title}" --title "${msg_fmt_part}" --stdout --ok-label '${oklabel}' --msgbox "$(echo "" && fdisk -l $disk | grep gpt && echo "" && fdisk -l $disk | grep /dev/ )" 11 150
+      part=$(dialog --backtitle "${title}" --ok-label "${oklabel}" --no-cancel --clear --title "${msg_fmt_part}" \
+        --menu "${msg_fmt_part_swap}" 0 55 0 ${p} 2>&1 > /dev/tty)
+      dialog --title "${msg_fmt_swap}" --stdout --ok-label "${oklabel}" --prgbox "echo "" && mkswap $part && swapon $part" 10 100
+      swap="$part"
+      p=$(echo "$p" | grep -v "$part")
+  esac
+done
+#PARTICIONADO MANUAL
+
+
+
+part="$(lsblk -lno NAME,SIZE,TYPE | grep 'disk' | awk '{print "/dev/" $1 " " $2}' | sort -u | sed '/f/d' | sed '/sr/d' )" 
+diskhome=$(dialog --backtitle "${title}" --clear  --ok-label "${msg_part_select}" --no-cancel --menu "${msg_part_select_home}" 12 45 0 ${part} 2>&1 >/dev/tty)
+
+partitioner=$(dialog --backtitle "${title}" --clear --title "${msg_fmt_disk}" --ok-label "${oklabel}" --no-cancel --menu "${msg_fmt_create}" 9 0 0\
+    "cfdisk" "${msg_fmt_type1}" \
+    "fdisk" "${msg_fmt_type2}" \
+    "parted" "${msg_fmt_type2}" 2>&1 > /dev/tty)
+
+clear
+
+$partitioner $diskhome
+
+fdisk -l "$diskhome" > /tmp/partitions
+
+#partitions="$(cat /tmp/partitions | grep /dev/ | awk '{if (NR!=1) {print}}' | sed 's/*//g' | awk -F ' ' '{print $1,$5}')"
+partitions=$(fdisk -l ${diskhome} | grep /dev/ | awk '{if (NR!=1) {print}}' | sed 's/*//g' | awk -F ' ' '{print $1,$5}' | grep /dev/ | awk '{if (NR=1) {print}}' | sed 's/*//g')
+p="$(echo "$partitions")"
+
+part=$(dialog --backtitle "${title}" --title "${msg_fmt_opt}" --ok-label "${oklabel}" --no-cancel --clear \
+  --menu "${msg_fmt_part_home}" 10 55 0 ${p} 2>&1 > /dev/tty)
+
+#dialog --no-collapse --cr-wrap --backtitle "${title}" --title "-| Verificando estado de partición |-" --stdout --ok-label "${oklabel}" --prgbox "e2fsck -f -y -v -C 0 $part" 20 80
+
+homefs=$part
+
+partitioning
+mkdir -p /mnt/home
+mount "$homefs" /mnt/home
+
+
+fi
+
+}
+
+
+
+manualpartition () { 
+
+clear
+rmmod floppy
+clear
+swapdisco=$( fdisk -l | grep "/dev/\|swap" | grep swap | awk -F ' ' '{print $1}' )
+umount -R /mnt
+swapoff ${swapdisco}
+clear
+swapoff -a
+swapon -a
+rm /mnt/etc/fstab
+clear 
+#Desmontamos todo disco y swapoff
+
+part=""
+disk=""
+partitions=""
+p=""
+part=""
+rootfs=""
+
+bootarch=$( ls /sys/firmware/efi/ | grep -ic efivars )
+if [[ $bootarch == 1 ]]; then
+  tableboot="UEFI"
+else
+  tableboot="BIOS LEGACY"
+fi
+
+cmd=(dialog --no-collapse --no-tags --cr-wrap --backtitle "${title}" --title "${title_disk}" \
+--ok-label "${btn_confirm}" --menu "${msg_menu_disk}" 11 55 11)
+options=(1 "${msg_menu_disk3}"   
+         2 "${msg_menu_disk7}")
+
+choices=$("${cmd[@]}" "${options[@]}" 2>&1 >/dev/tty)
+clear
+for choice in $choices
+do
+    case $choice in
+    ################
+
+1) ################ 
+manualdisk
+;;
+
+2) ################
+manualhomedisk
+;;
+
+    esac
+done
+
+
+#PARTICIONADO MANUAL
+ 
+
+clear
+partprobe
+clear
+
+dialog --no-collapse --cr-wrap --backtitle "${title}" --title "${msg_disk_info}" --stdout --ok-label "${oklabel}" \
+--prgbox "lsblk -lo NAME,SIZE,MOUNTPOINT,TYPE > /tmp/partitions && \
+echo -------------------------------------- && \
+echo _ && \
+cat /tmp/partitions && \
+echo _ && \
+echo --------------------------------------" 20 50
+
+
+}

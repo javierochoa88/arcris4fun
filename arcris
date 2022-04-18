@@ -1,0 +1,35 @@
+#!/bin/sh
+: 'Copyright (C) 2019 Código Cristo'
+#!/bin/bash
+
+# @Bourne_Again
+# wget is.gd/arcris && sh arcris
+# https://is.gd/stats.php?url=arcris
+
+clear
+pacman -Sy --noconfirm
+pacman -Sy 
+clear
+
+pacmaninit1=$( pacman -Ss glibc  | grep "glibc" 	| grep "installed" | wc -l )
+pacmaninit2=$( pacman -Ss dialog | grep "dialog" 	| grep "installed" | wc -l )
+pacmaninit3=$( pacman -Ss git 	 | grep "git" 		| grep "installed" | wc -l )
+
+if [[ "$pacmaninit1" = "1" && "$pacmaninit2" = "1" && "$pacmaninit3" = "1" ]] ; then
+clear
+else
+clear
+sudo pacman -Sy glibc dialog git ncurses --noconfirm --needed
+sleep 5
+fi
+
+clear
+# git clone https://github.com/javierochoa88/arcris4fun
+cd arcris4fun
+
+cp .dialogrc /root
+chmod +x *
+clear
+echo "Loading..."
+sleep 2
+sh arcris-install

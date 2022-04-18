@@ -1,0 +1,54 @@
+#!/bin/bash
+
+autopartition () {
+
+
+cmd=(dialog --no-collapse --cr-wrap --backtitle "${title}" --title "${msg_part_auto}" \
+--no-tags --ok-label "${oklabel}" --nocancel --menu "${menu_part_option}" 20 64 20)
+options=(1 "${msg_part_op1}"  
+         2 "${msg_part_op2}"
+         3 "${msg_part_op3}"
+         4 "${msg_part_op4}"
+         5 "${msg_part_op5}")
+
+choices=$("${cmd[@]}" "${options[@]}" 2>&1 >/dev/tty)
+clear
+for choice in $choices
+do
+    case $choice in
+    ################
+
+1) ################ 
+source lib/partition/auto/auto1
+auto1
+;;
+
+2) ################
+source lib/partition/auto/auto2
+auto2
+;;
+3) ################
+source lib/partition/auto/auto3
+auto3
+;;
+
+4) ################
+source lib/partition/auto/auto4
+auto4
+;;
+
+
+5) ################
+source lib/partition/auto/auto5
+auto5
+GRUBINSTALL=4
+;;
+
+                                                
+    esac
+done
+
+
+}
+
+
