@@ -21,16 +21,15 @@ kernel_var=0
 
 
 
+
 while [ "$kernel_var" = "0" ] ; do
 
-kernel_select=$(dialog --backtitle "${title}" --title "-| KERNEL |-" \
---stdout --ok-label "Selecciona" --no-cancel --menu "\nElige que kernel necesitas: \n\n\
-> Linux Stable es la mejor opción\n\nLas otras opciones tienen un estilo diferente para \
-instalar Drivers\nLas otras modificaciones del kernel trabajan con Drivers Libres\n " 18 0 200 \
-"linux-stable"  " Kernel en su versión estable y módulos de Vanilla Linux " \
-"linux-hardened"  " Kernel enfocado en Seguridad                            " \
-"linux-lts"  " Kernel con soporte de larga duración                    " \
-"linux-zen"  " Kernel del esfuerzo colaborativo de varios hackers      ")
+kernel_select=$(dialog --backtitle "${title}" --title "${title_kernel}" \
+--stdout --ok-label "${btn_confirm}" --no-cancel --menu "${msg_menu_kernel}" 18 0 200 \
+"${msg_menu_kernel1}" "${msg_menu_kernel1_aux}" \
+"${msg_menu_kernel2}" "${msg_menu_kernel2_aux}" \
+"${msg_menu_kernel3}" "${msg_menu_kernel3_aux}" \
+"${msg_menu_kernel4}" "${msg_menu_kernel4_aux}")   
 
 #####Stable  
   if [ $kernel_select == linux-stable ]; then
@@ -43,10 +42,11 @@ selec8168=true
 fi
 
 cmd=(dialog --no-collapse --cr-wrap --backtitle "${title}" --separate-output --column-separator "|" \
---no-tags --ok-label "-Siguiente-" --cancel-label "-No deseo esto-" --title "-| Extras Kernel |-" --checklist "Selecciona los modulos que necesitas\n[ ESPACIO ] - Para marcar o desmarcar *" 11 70 10)
-options=(1 " Módulo para Wi-fi              " off  # any option can be set to default to "on"
-         2 " Módulo para tactil de Laptops " off
-         3 " Módulo para Bluetooth          " off)
+--no-tags --ok-label "${oklabel}" --cancel-label "${cancel_label}" --title "${msg_module_kernel}" --checklist "${msg_checklist}" 11 70 10)
+options=(1 "${msg_module_wifi}" off  # any option can be set to default to "on"
+         2 "${msg_module_touchpad}"  off
+         3 "${msg_module_bluetooth}" off)
+
 choices=$("${cmd[@]}" "${options[@]}" 2>&1 >/dev/tty)
 clear
 for choice in $choices
@@ -61,6 +61,7 @@ do
     esac
 done
 
+
   selecLinuxStable=true
   kernel_var=1
 
@@ -69,12 +70,16 @@ done
   elif [ $kernel_select == linux-hardened ]; then
 
 cmd=(dialog --no-collapse --cr-wrap --backtitle "${title}" --separate-output --column-separator "|" \
---no-tags --ok-label "-Siguiente-" --cancel-label "-No deseo esto-" --title "-| Extras Kernel |-" --checklist "Selecciona los modulos que necesitas\n[ ESPACIO ] - Para marcar o desmarcar *" 11 70 10)
-options=(1 " Módulo para Wi-fi              " off  # any option can be set to default to "on"
-         2 " Módulo para tactil de Laptops " off
-         3 " Módulo para Bluetooth          " off)
+--no-tags --ok-label "${oklabel}" --cancel-label "${cancel_label}" --title "${msg_module_kernel}" --checklist "${msg_checklist}" 11 70 10)
+options=(1 "${msg_module_wifi}" off  # any option can be set to default to "on"
+         2 "${msg_module_touchpad}"  off
+         3 "${msg_module_bluetooth}" off)
+
+
+
 choices=$("${cmd[@]}" "${options[@]}" 2>&1 >/dev/tty)
 clear
+
 for choice in $choices
 do
     case $choice in
@@ -102,10 +107,12 @@ selec8168lts=true
 fi
 
 cmd=(dialog --no-collapse --cr-wrap --backtitle "${title}" --separate-output --column-separator "|" \
---no-tags --ok-label "-Siguiente-" --cancel-label "-No deseo esto-" --title "-| Extras Kernel |-" --checklist "Selecciona los modulos que necesitas\n[ ESPACIO ] - Para marcar o desmarcar *" 11 70 10)
-options=(1 " Módulo para Wi-fi              " off  # any option can be set to default to "on"
-         2 " Módulo para tactil de Laptops " off
-         3 " Módulo para Bluetooth          " off)
+--no-tags --ok-label "${oklabel}" --cancel-label "${cancel_label}" --title "${msg_module_kernel}" --checklist "${msg_checklist}" 11 70 10)
+options=(1 "${msg_module_wifi}" off  # any option can be set to default to "on"
+         2 "${msg_module_touchpad}"  off
+         3 "${msg_module_bluetooth}" off)
+
+
 choices=$("${cmd[@]}" "${options[@]}" 2>&1 >/dev/tty)
 clear
 for choice in $choices
@@ -129,10 +136,11 @@ done
 ##################################################################################
 
 cmd=(dialog --no-collapse --cr-wrap --backtitle "${title}" --separate-output --column-separator "|" \
---no-tags --ok-label "-Siguiente-" --cancel-label "-No deseo esto-" --title "-| Extras Kernel |-" --checklist "Selecciona los modulos que necesitas\n[ ESPACIO ] - Para marcar o desmarcar *" 11 70 10)
-options=(1 " Módulo para Wi-fi              " off  # any option can be set to default to "on"
-         2 " Módulo para tactil de Laptops " off
-         3 " Módulo para Bluetooth          " off)
+--no-tags --ok-label "${oklabel}" --cancel-label "${cancel_label}" --title "${msg_module_kernel}" --checklist "${msg_checklist}" 11 70 10)
+options=(1 "${msg_module_wifi}" off  # any option can be set to default to "on"
+         2 "${msg_module_touchpad}"  off
+         3 "${msg_module_bluetooth}" off)
+
 choices=$("${cmd[@]}" "${options[@]}" 2>&1 >/dev/tty)
 clear
 for choice in $choices
@@ -159,18 +167,16 @@ sectionkernel=1
 }
 
 
-
-
-
-
 demomicrocode () {
 
 cmd=(dialog --no-collapse --cr-wrap --backtitle "${title}" --separate-output --column-separator "|" \
---no-tags --ok-label '< Siguiente >' --cancel-label '< No deseo esto >' --title "-| Extras Kernel |-" --checklist "Selecciona los modulos que necesitas\n[ ESPACIO ] - Para marcar o desmarcar *" 12 70 10)
-options=(1 " Actualizaciones del Microcode  " on    # any option can be set to default to "on"
-         2 " Módulo para Wi-fi              " off
-         3 " Módulo para tactil de Laptops " off
-         4 " Módulo para Bluetooth          " off)
+--no-tags --ok-label "${oklabel}" --cancel-label "${cancel_label}" --title "${msg_module_kernel}" --checklist "${msg_checklist}" 11 70 10)
+options=(1 "${msg_module_micro}" off  # any option can be set to default to "on"
+         2 "${msg_module_wifi}" off 
+         3 "${msg_module_touchpad}"  off
+         4 "${msg_module_bluetooth}" off)
+
+
 choices=$("${cmd[@]}" "${options[@]}" 2>&1 >/dev/tty)
 clear
 for choice in $choices
