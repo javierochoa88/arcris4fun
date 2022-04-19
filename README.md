@@ -9,4 +9,4 @@ The code belongs to https://github.com/CodigoCristo/, I also translated to Engli
 8. Linux Kernel: stable
 9. Video Drivers: auto
 10. Desktop Environment: Cinnamon
-11. Utilities: none.
+11. Extra software: default.
