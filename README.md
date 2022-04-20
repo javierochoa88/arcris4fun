@@ -1,4 +1,4 @@
-The code belongs to https://github.com/CodigoCristo/, I also translated to English and added some replacements to the code
+The code belongs to https://github.com/CodigoCristo/, I only translated the English menus and adding some replacements to the code.
 1. Clone this repo (arcris4fun).
 2. Change permission to execute arcris if necessary and run the script.
 3. Any comments should be posted in the issue section, I will respond as soon as possible.
@@ -8,5 +8,5 @@ The code belongs to https://github.com/CodigoCristo/, I also translated to Engli
 7. Partition: auto
 8. Linux Kernel: stable
 9. Video Drivers: auto
-10. Desktop Environment: Cinnamon
+10. Desktop Environment: Cinnamon - Xfce Arcris
 11. Extra software: default.
