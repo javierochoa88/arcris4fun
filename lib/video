@@ -176,7 +176,7 @@ current_item="8"
 
 else
 
-dialog --backtitle "${title}" --title "${msg_error}" --stdout --ok-label "${okbutton}"  --msgbox "${msg_kernel_select} " 7 35
+dialog --backtitle "${title}" --title "${msg_error}" --stdout --ok-label "${okbutton}"  --msgbox "${msg_kernel_select}" 7 35
 current_item="6"
 
 fi
