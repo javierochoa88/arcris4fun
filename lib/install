@@ -23,8 +23,8 @@ function ProgressBar {
     _fill=$(printf "%${_done}s")
     _empty=$(printf "%${_left}s")
 # 1.2.1.1 Progreso : [########################################] 100%
-printf "\r > Cargando : |${_fill// /║}${_empty// /-}| ${_progress}%%"
-
+# printf "\r > Cargando : Loading |${_fill// /║}${_empty// /-}| ${_progress}%%"
+printf ${msg_install_loading}
 }
 # Variables
 _start=1
@@ -42,102 +42,29 @@ echo ""
 }
 
 
-function mensaje_install {
-echo ""
-echo ""
-echo -e '\033[38;2;255;0;02m'
-echo " █████╗ ██████╗  ██████╗██████╗ ██╗███████╗";
-echo "██╔══██╗██╔══██╗██╔════╝██╔══██╗██║██╔════╝";
-echo "███████║██████╔╝██║     ██████╔╝██║███████╗";
-echo "██╔══██║██╔══██╗██║     ██╔══██╗██║╚════██║";
-echo "██║  ██║██║  ██║╚██████╗██║  ██║██║███████║";
-echo "╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚═╝╚══════╝";
-echo "                                           ";
-echo -e '\033[m'
-echo ""
-echo ""
-sleep 3
-}
-
-
-function unix {
-echo '
-                     [38;5;255m,_ ,_==▄▂[0m
-                  [38;5;255m,  ▂▃▄▄▅▅[48;5;240m▅[48;5;20m▂[48;5;240m▅¾[0m.            [38;5;199m/    [38;5;20m/[0m
-                   [38;5;255m[48;5;20m▄[0m[38;5;255m[48;5;199m▆[38;5;16m[48;5;255m<´  [38;5;32m"[38;5;34m»[38;5;255m▓▓[48;5;32m▓[48;5;240m%[0m\       [38;5;199m/ [38;5;20m/   [38;5;45m/ [38;5;118m/[0m
-                 [38;5;255m,[38;5;255m[48;5;240m▅[38;5;16m[48;5;255m7"     [38;5;160m´[38;5;34m>[38;5;255m[48;5;39m▓▓[38;5;199m[48;5;255m▓[0m[38;5;255m%   [38;5;20m/  [38;5;118m/ [38;5;199m> [38;5;118m/ [38;5;199m>[38;5;255m/[38;5;45m%[0m
-                 [38;5;255m▐[48;5;240m[38;5;255m¶[48;5;240m[38;5;255m▓[48;5;255m       [38;5;196m,[38;5;34m»[48;5;201m[38;5;255m▓▓[0m[38;5;255m¾´[0m  [38;5;199m/[38;5;255m> %[38;5;199m/[38;5;118m%[38;5;255m/[38;5;199m/ [38;5;45m/  [38;5;199m/[0m
-                  [38;5;255m[48;5;240m▓[48;5;255m[38;5;16m▃[48;5;16m[38;5;255m▅▅[38;5;16m[48;5;255m▅▃,,[38;5;32m▄[38;5;16m▅[38;5;255m[48;5;16m▅▅[38;5;255m[48;5;20mÆ[0m[38;5;255m\[0m[38;5;20m/[38;5;118m/[38;5;255m /[38;5;118m/[38;5;199m/[38;5;255m>[38;5;45m// [38;5;255m/[38;5;118m>[38;5;199m/   [38;5;20m/[0m
-                 [48;5;20m[38;5;255mV[48;5;255m[38;5;16m║[48;5;20m[38;5;255m«[0m[38;5;255m¼.;[48;5;240m[38;5;255m→[48;5;255m[38;5;16m ║[0m[38;5;255m<«.,[48;5;25m[38;5;255m`[48;5;240m=[0m[38;5;20m/[38;5;199m/ [38;5;255m/>[38;5;45m/[38;5;118m/[38;5;255m%/[38;5;199m% / [38;5;20m/[0m
-               [38;5;20m//[48;5;255m[38;5;16m╠<´ -²,)[48;5;16m[38;5;255m(▓[48;5;255m[38;5;16m~"-[38;5;199m╝/[0m[38;5;255m¾[0m[38;5;199m/ [38;5;118m%[38;5;255m/[38;5;118m>[38;5;45m/ [38;5;118m/[38;5;199m>[0m
-           [38;5;20m/ / [38;5;118m/ [48;5;20m[38;5;255m▐[48;5;240m[38;5;16m%[48;5;255m -./▄▃▄[48;5;16m[38;5;255m▅[48;5;255m[38;5;16m▐[48;5;255m[38;5;16m, [38;5;199m/[48;5;199m[38;5;255m7[0m[38;5;20m/[38;5;199m/[38;5;255m;/[38;5;199m/[38;5;118m% [38;5;20m/ /[0m
-           [38;5;20m/ [38;5;199m/[38;5;255m/[38;5;45m/[38;5;118m/[38;5;255m[48;5;240m`[48;5;20m[38;5;255m▌[48;5;20m[38;5;255m▐[48;5;255m[38;5;16m %z[0m[38;5;255mWv xX[48;5;20m[38;5;255m▓[48;5;34m[38;5;255m▇[48;5;199m[38;255m▌[0m[38;5;20m/[38;5;199m/[38;5;255m&;[38;5;20m% [38;5;199m/ [38;5;20m/[0m
-       [38;5;20m/ / [38;5;255m/ [38;5;118m%[38;5;199m/[38;5;255m/%/[48;5;240m[38;5;255m¾[48;5;255m[38;5;16m½´[38;5;255m[48;5;16m▌[0m[38;5;246m▃▄[38;5;255m▄▄[38;5;246m▄▃▃[0m[48;5;16m[38;5;255m▐[38;5;255m[48;5;199m¶[48;5;20m[38;5;255m\[0m[38;5;20m/[0m[48;5;255m[38;5;240m&[0m [38;5;20m/[0m
-         [38;5;199m<[38;5;118m/ [38;5;45m/[38;5;255m</[38;5;118m%[38;5;255m/[38;5;45m/[38;5;255m`[48;5;16m▓[48;5;255m[38;5;16m![48;5;240m[38;5;255m%[48;5;16m[38;5;255m▓[0m[38;5;255m%[48;5;240m[38;5;255m╣[48;5;240m[38;5;255;╣[0m[38;5;255mW[0m[38;5;250mY<Y)[48;5;255m[38;5;16my&[0m[38;5;255m/`[48;5;240m\[0m
-     [38;5;20m/ [38;5;199m/ [38;5;199m%[38;5;255m/%[38;5;118m/[38;5;45m/[38;5;255m<[38;5;118m/[38;5;199m%[38;5;45m/[38;5;20m/[48;5;240m[38;5;255m\[38;5;16m[48;5;255mi7; ╠N[0m[38;5;246m>[38;5;255m)VY>[48;5;240m[38;5;255m7[0m[38;5;255m;  [38;5;255m[48;5;240m\[0m[38;5;255m_[0m    [38;5;255mUNIX IS VERY SIMPLE
-  [38;5;20m/   [38;5;255m/[38;5;118m<[38;5;255m/ [38;5;45m/[38;5;255m/<[38;5;199m/[38;5;20m/[38;5;199m/[38;5;20m<[38;5;255m_/%\[38;5;255m[48;5;16m▓[48;5;255m[38;5;16m  V[0m[38;5;255m%[48;5;255m[38;5;16mW[0m[38;5;255m%£)XY[0m  [38;5;240m_/%[38;5;255m‾\_,[0m
-   [38;5;199m/ [38;5;255m/ [38;5;199m/[38;5;255m/[38;5;118m%[38;5;199m/[48;5;240m[38;5;255m_,=-[48;5;20m-^[0m[38;5;255m/%/%%[48;5;255m[38;5;16m\¾%[0m[38;5;255m¶[0m[48;5;255m[38;5;16m%[0m[38;5;255m%}[0m    [38;5;240m/%%%[38;5;20m%%[38;5;240m%;\,[0m
-    [38;5;45m%[38;5;20m/[38;5;199m< [38;5;20m/[48;5;20m[38;5;255m_/[48;5;240m [0m[38;5;255m%%%[38;5;240m%%[38;5;20m;[38;5;255mX[38;5;240m%[38;5;20m%[38;5;255m\%[38;5;240m%;,     _/%%%;[38;5;20m,[38;5;240m     \[0m
-   [38;5;118m/ [38;5;20m/ [38;5;240m%[38;5;20m%%%%[38;5;240m%;,    [38;5;255m\[38;5;240m%[38;5;20m%[38;5;255ml[38;5;240m%%;// _/[38;5;20m%;,[0m [38;5;234mdmr[0m
- [38;5;20m/    [38;5;240m%[38;5;20m%%;,[0m         [38;5;255m<[38;5;20m;[38;5;240m\-=-/ /[0m
-     [38;5;20m;,[0m                [38;5;240ml[0m '
-
-}
-
-
-install () {
-
-clear
-logoline1='                             -`                        '
-logoline2='                           .o+`                        '
-logoline3='                           `ooo/                       '
-logoline4='                          `+oooo:                      '
-logoline5='                         `+oooooo:                     ' 
-logoline6='                         -+oooooo+:                    '
-logoline7='                       `/:-:++oooo+:                   '
-logoline8='                      `/++++/+++++++:                  '
-logoline9='                     `/++++++++++++++:                 '
-logoline11='                    `/+++ooooooooooooo/`               '
-logoline12='                   ./ooosssso++osssssso+`              '
-logoline13='                  .oossssso-````/ossssss+`             '
-logoline14='                 -osssssso.      :ssssssso.            '
-logoline15='                :osssssss/        osssso+++.           '
-logoline16='               /ossssssss/        +ssssooo/-           '
-logoline17='             `/ossssso+/:-        -:/+osssso+-         '
-logoline18='            `+sso+:-`                 `.-/+oso:        '
-logoline19='           `++:.                           `-/+/       '
-logoline20='           .`                                 `/       '
-logoline21="                          _                  _         "
-logoline22="  .--.                   / \   _ __ ___ _ __(_)___     "
-logoline23=" / _.-' .-.  .-.  .-.   / _ \ | '__/ __| '__| / __|    "
-logoline24=" \  '-. '-'  '-'  '-'  / ___ \| | | (__| |  | \__ \    "
-logoline25="  '--'                /_/   \_\_|  \___|_|  |_|___/    "
-
-
-
 if [[ $sectionuser == "0" ]]; then
-    dialog --backtitle "${title}" --title "-| ERROR |-" --stdout --msgbox "\n\nNo has creado tu usuario. \n " 8 30   
+    dialog --backtitle "${title}" --title "-| ERROR |-" --stdout --msgbox "${msg_error_user}" 8 30   
     main
 elif [[ $sectionubi == "0" ]]; then
-    dialog --backtitle "${title}" --title "-| ERROR |-" --stdout --msgbox "\n\nNo has elegido tu Ubicación.\n " 8 32
+    dialog --backtitle "${title}" --title "-| ERROR |-" --stdout --msgbox "${msg_error_zoneinfo}" 8 32
     main
 elif [[ $sectionlang == "0" ]]; then
-    dialog --backtitle "${title}" --title "-| ERROR |-" --stdout --msgbox "\n\nNo has elegido tu Idioma.\n " 8 30
+    dialog --backtitle "${title}" --title "-| ERROR |-" --stdout --msgbox "${msg_error_lang}" 8 30
     main
 elif [[ $sectionshell == "0" ]]; then
-    dialog --backtitle "${title}" --title "-| ERROR |-" --stdout --msgbox "\n\nNo has elegido tu Shell del sistema.\n " 8 40
+    dialog --backtitle "${title}" --title "-| ERROR |-" --stdout --msgbox "${msg_error_shell}" 8 40
     main
 elif [[ $sectiondisk == "0" ]]; then
-    dialog --backtitle "${title}" --title "-| ERROR |-" --stdout --msgbox "\n\nSelecciona tu Disco para instalar en el sistema.\n " 8 53
+    dialog --backtitle "${title}" --title "-| ERROR |-" --stdout --msgbox "${msg_error_disk}" 8 53
     main
 elif [[ $sectionkernel == "0" ]]; then
-    dialog --backtitle "${title}" --title "-| ERROR |-" --stdout --msgbox "\n\nSelecciona el Kernel para instalar en el sistema.\n " 8 53
+    dialog --backtitle "${title}" --title "-| ERROR |-" --stdout --msgbox "${msg_error_kernel}" 8 53
     main
 elif [[ $sectionvideo == "0" ]]; then
-    dialog --backtitle "${title}" --title "-| ERROR |-" --stdout --msgbox "\n\nSelecciona tu driver de vídeo para instalar en el sistema.\n " 8 62
+    dialog --backtitle "${title}" --title "-| ERROR |-" --stdout --msgbox "${msg_error_video}" 8 62
     main
 elif [[ $sectionenv == "0" ]]; then
-    dialog --backtitle "${title}" --title "-| ERROR |-" --stdout --msgbox "\n\nSelecciona un entorno gráfico para instalar en el sistema.\n " 8 62
+    dialog --backtitle "${title}" --title "-| ERROR |-" --stdout --msgbox "${msg_error_environment}" 8 62
     main
 else
     clear
@@ -199,7 +126,7 @@ echo -e "${logoline24}"
 echo -e "${logoline25}"
 echo ""
 echo ""
-echo "  Arcris Instalación fácil de ArchLinux - Donaciones en: www.patreon.com/codigocristo"
+echo "${title}"
 echo ""
 echo ""
 
@@ -235,7 +162,7 @@ hwclock --systohc
 clear
 echo "" 
 echo -e ""
-echo -e "\t\t\t| Actualizando Hora Actual en LiveCD |"
+echo -e "${msg_live_cd}"
 printf '%*s\n' "${COLUMNS:-$(tput cols)}" '' | tr ' ' _
 echo -e ""
 sleep 2
@@ -248,7 +175,7 @@ clear
 
 echo "" 
 echo -e ""
-echo -e "\t\t\t| Actualizando lista de Keys en LiveCD |"
+echo -e "${msg_update_keys}"
 printf '%*s\n' "${COLUMNS:-$(tput cols)}" '' | tr ' ' _
 echo -e ""
 sleep 2
@@ -259,7 +186,7 @@ clear
 
 echo "" 
 echo -e ""
-echo -e "\t\t\t| Actualizando MirrorList en LiveCD |"
+echo -e "${msg_update_mirrors}"
 printf '%*s\n' "${COLUMNS:-$(tput cols)}" '' | tr ' ' _
 echo -e ""
 sleep 3
@@ -267,7 +194,7 @@ pacman -Sy reflector --noconfirm
 pacman -Sy python3 --noconfirm 
 pacman -Sy rsync --noconfirm 
 clear
-echo -e "\t\t\t| Actualizando mejores listas de Mirrors |"
+echo -e "${msg_update_bestmirros}"
 echo ""
 reflector --verbose --latest 6 --protocol https --sort rate --save /etc/pacman.d/mirrorlist
 sleep 3
@@ -277,7 +204,7 @@ sleep 3
 clear
 
 
-titulo_progreso="| Instalando: Base y Base-devel |"
+titulo_progreso="${msg_install_base}"
 barra_progreso
 pacstrap /mnt base
 pacstrap /mnt base-devel
@@ -287,7 +214,7 @@ pacstrap /mnt xdg-user-dirs
 clear
 
 
-titulo_progreso="| Actualizando mejores listas de Mirrors del sistema instalado |"
+titulo_progreso="${msg_add_mirrors}"
 barra_progreso
 arch-chroot /mnt /bin/bash -c "reflector --verbose --latest 6 --protocol https --sort rate --save /etc/pacman.d/mirrorlist"
 clear
@@ -297,7 +224,7 @@ clear
 echo ""
 arch-chroot /mnt /bin/bash -c "pacman -Syu --noconfirm"
 echo ""
-echo " Agregando Repositorio de Arcris :"
+echo "${msg_add_arcris}"
 echo ""
 cp pacman.conf /mnt/etc/pacman.conf
 arch-chroot /mnt /bin/bash -c "pacman -Syu --noconfirm"
@@ -305,7 +232,7 @@ arch-chroot /mnt /bin/bash -c "pacman -Syu --noconfirm"
 clear
 
 
-titulo_progreso="| Archivo FSTAB |"
+titulo_progreso="${msg_gen_fstab}"
 barra_progreso
 genfstab -U /mnt > /mnt/etc/fstab
 echo ""
@@ -314,7 +241,7 @@ sleep 3
 clear
 
 
-titulo_progreso="| Usuario y Administrador |"
+titulo_progreso="${msg_gen_users}"
 barra_progreso
 echo -e ""
 echo -e ""
@@ -351,7 +278,7 @@ sed -i "80i $username ALL=(ALL) NOPASSWD: ALL"  /mnt/etc/sudoers
 
 
 # Idioma
-titulo_progreso="| Actualizando Idioma del Sistema |"
+titulo_progreso="${msg_gen_locale}"
 barra_progreso
 echo -e ""
 echo -e ""
@@ -369,7 +296,7 @@ sleep 3
 
 
 ## DIRECTORIOS
-titulo_progreso="| Actualizando lista de directorios de usuario |"
+titulo_progreso="${msg_update_dirs}"
 barra_progreso
 echo -e ""
 echo -e ""
@@ -386,7 +313,7 @@ clear
 
 
 ## ZONA HORARIA 
-titulo_progreso="| Actualizando Zona Horaria |"
+titulo_progreso="${msg_gen_timezone}"
 barra_progreso
 echo -e ""
 echo -e ""
@@ -409,7 +336,7 @@ installkernel
 clear
 
 ## ESCRITORIOS 
-titulo_progreso="| Instalando Entorno Gráfico |"
+titulo_progreso="msg_install_desktop"
 barra_progreso
 echo -e ""
 echo -e ""
@@ -418,7 +345,7 @@ installenvironment
 clear
 
 ## DRIVERS DE VIDEO
-titulo_progreso="| Instalando driver de Vídeo |"
+titulo_progreso="${msg_install_videodrivers}"
 barra_progreso
 echo -e ""
 echo -e ""
@@ -468,7 +395,7 @@ sleep 5
 clear
 echo ""
 echo ""
-echo "Quitando repo cristo:"
+echo "${msg_repo_local}"
 echo ""
 sleep 4
 cp pacman-chroot.conf /mnt/etc/pacman.conf
@@ -512,8 +439,8 @@ function ProgressBar {
     _fill=$(printf "%${_done}s")
     _empty=$(printf "%${_left}s")
 # 1.2.1.1 Progreso : [########################################] 100%
-printf "\r > Cargando : |${_fill// /║}${_empty// /-}| ${_progress}%%"
-
+# printf "\r > Cargando | Loading: |${_fill// /║}${_empty// /-}| ${_progress}%%"
+printf ${msg_install_loading}
 }
 # Variables
 _start=1
@@ -559,43 +486,3 @@ reboot
 
 
 
-
-
-
-
-install2 () {
-
-red='\033[38;2;255;1;31m'
-clear
-echo ""
-echo ""
-echo -e $red '                             -`                        '
-echo -e $red '                           .o+`                        '
-echo -e $red '                           `ooo/                       Kernel  : ${kernel_select}'
-echo -e $red '                          `+oooo:                      '
-echo -e $red '                         `+oooooo:                     Disco   : ' 
-echo -e $red '                         -+oooooo+:                    '
-echo -e $red '                       `/:-:++oooo+:                   Usuario : '
-echo -e $red '                      `/++++/+++++++:                  '
-echo -e $red '                     `/++++++++++++++:                 Idioma  : '
-echo -e $red '                    `/+++ooooooooooooo/`               '
-echo -e $red '                   ./ooosssso++osssssso+`              Zona Horaria :'
-echo -e $red '                  .oossssso-````/ossssss+`             '
-echo -e $red '                 -osssssso.      :ssssssso.            Ubicación :'
-echo -e $red '                :osssssss/        osssso+++.           '
-echo -e $red '               /ossssssss/        +ssssooo/-           Driver de Vídeo : '
-echo -e $red '             `/ossssso+/:-        -:/+osssso+-         '
-echo -e $red '            `+sso+:-`                 `.-/+oso:        Entorno Gráfico : '
-echo -e $red '           `++:.                           `-/+/       '
-echo -e $red '           .`                                 `/       '
-echo -e $red "                          _                  _         "
-echo -e $red "  .--.                   / \   _ __ ___ _ __(_)___     "
-echo -e $red " / _.-' .-.  .-.  .-.   / _ \ | '__/ __| '__| / __|    "
-echo -e $red " \  '-. '-'  '-'  '-'  / ___ \| | | (__| |  | \__ \    "
-echo -e $red "  '--'                /_/   \_\_|  \___|_|  |_|___/    "
-
-echo -e '\033[m'
-
-read line
-
-}
