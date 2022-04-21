@@ -43,28 +43,28 @@ echo ""
 
 
 if [[ $sectionuser == "0" ]]; then
-    dialog --backtitle "${title}" --title "-| ERROR |-" --stdout --msgbox "${msg_error_user}" 8 30   
+    dialog --backtitle "${title}" --title "${msg_error}" --stdout --msgbox "${msg_error_user}" 8 30   
     main
 elif [[ $sectionubi == "0" ]]; then
-    dialog --backtitle "${title}" --title "-| ERROR |-" --stdout --msgbox "${msg_error_zoneinfo}" 8 32
+    dialog --backtitle "${title}" --title "${msg_error}" --stdout --msgbox "${msg_error_zoneinfo}" 8 32
     main
 elif [[ $sectionlang == "0" ]]; then
-    dialog --backtitle "${title}" --title "-| ERROR |-" --stdout --msgbox "${msg_error_lang}" 8 30
+    dialog --backtitle "${title}" --title "${msg_error}" --stdout --msgbox "${msg_error_lang}" 8 30
     main
 elif [[ $sectionshell == "0" ]]; then
-    dialog --backtitle "${title}" --title "-| ERROR |-" --stdout --msgbox "${msg_error_shell}" 8 40
+    dialog --backtitle "${title}" --title "${msg_error}" --stdout --msgbox "${msg_error_shell}" 8 40
     main
 elif [[ $sectiondisk == "0" ]]; then
-    dialog --backtitle "${title}" --title "-| ERROR |-" --stdout --msgbox "${msg_error_disk}" 8 53
+    dialog --backtitle "${title}" --title "${msg_error}" --stdout --msgbox "${msg_error_disk}" 8 53
     main
 elif [[ $sectionkernel == "0" ]]; then
-    dialog --backtitle "${title}" --title "-| ERROR |-" --stdout --msgbox "${msg_error_kernel}" 8 53
+    dialog --backtitle "${title}" --title "${msg_error}" --stdout --msgbox "${msg_error_kernel}" 8 53
     main
 elif [[ $sectionvideo == "0" ]]; then
-    dialog --backtitle "${title}" --title "-| ERROR |-" --stdout --msgbox "${msg_error_video}" 8 62
+    dialog --backtitle "${title}" --title "${msg_error}" --stdout --msgbox "${msg_error_video}" 8 62
     main
 elif [[ $sectionenv == "0" ]]; then
-    dialog --backtitle "${title}" --title "-| ERROR |-" --stdout --msgbox "${msg_error_environment}" 8 62
+    dialog --backtitle "${title}" --title "${msg_error}" --stdout --msgbox "${msg_error_environment}" 8 62
     main
 else
     clear
@@ -92,43 +92,6 @@ fi
 
 
 
-
-
-red='\033[38;2;255;1;31m'
-clear
-echo -e $red
-printf '%*s\n' "${COLUMNS:-$(tput cols)}" '' | tr ' ' _
-echo ""
-echo ""
-echo -e "${logoline1}"
-echo -e "${logoline2}"
-echo -e "${logoline3} Kernel  : ${kernel_select}"
-echo -e "${logoline4}"
-echo -e "${logoline5} Disco   : ${disk}"
-echo -e "${logoline6}"
-echo -e "${logoline7} Usuario : ${username}"
-echo -e "${logoline8}"
-echo -e "${logoline9} Idioma  : ${keymapx}"
-echo -e "${logoline11}"
-echo -e "${logoline12} Zona Horaria : ${zonahoraria}"
-echo -e "${logoline13}"
-echo -e "${logoline14} Ubicación : ${localefrom}"
-echo -e "${logoline15}"
-echo -e "${logoline16} Driver de Vídeo : ${video}"
-echo -e "${logoline17}"
-echo -e "${logoline18} Entorno Gráfico : ${environment}"
-echo -e "${logoline19}"
-echo -e "${logoline20}"
-echo -e "${logoline21}"
-echo -e "${logoline22}"
-echo -e "${logoline23}"
-echo -e "${logoline24}"
-echo -e "${logoline25}"
-echo ""
-echo ""
-echo "${title}"
-echo ""
-echo ""
 
 function ProgressBar {
     let _progress=(${1}*100/${2}*100)/100
@@ -457,6 +420,7 @@ echo ""
 echo ""
 ####################################################################
 
+echo "neofetch"
 
 clear
 swapdisco=$( fdisk -l | grep "/dev/\|swap" | grep swap | awk -F ' ' '{print $1}' )
