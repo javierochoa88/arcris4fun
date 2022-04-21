@@ -10,3 +10,4 @@ The code belongs to https://github.com/CodigoCristo/, I only translated the Engl
 9. Video Drivers: auto (Proxmox VM v 7.0 qxl video drivers)
 10. Desktop Environment: Cinnamon - Xfce Arcris - KDE Lite
 11. Extra software: default.
+12. Warning: reboot your installed system in case the environment could not load the first time.
